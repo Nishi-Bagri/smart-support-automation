@@ -1,11 +1,22 @@
-
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from classifier import classify_ticket
 from database import get_connection
 
+from fastapi.middleware.cors import CORSMiddleware 
+
 app = FastAPI(title="Smart Support Automation")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class TicketRequest(BaseModel):
