@@ -87,3 +87,39 @@ def create_ticket(ticket: TicketRequest):
         "handling_type": handling_type,
         "status": "received"
     }
+
+@app.get("/tickets")
+def get_tickets():
+
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, customer_name, message, category, priority, handling_type, status
+                FROM tickets
+                ORDER BY id DESC
+                """
+            )
+
+            rows = cur.fetchall()
+
+            tickets = []
+
+            for row in rows:
+                tickets.append({
+                    "ticket_id": row[0],
+                    "customer_name": row[1],
+                    "message": row[2],
+                    "category": row[3],
+                    "priority": row[4],
+                    "handling_type": row[5],
+                    "status": row[6]
+                })
+
+            return tickets
+
+    finally:
+        conn.close()
+                
