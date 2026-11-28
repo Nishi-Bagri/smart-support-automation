@@ -1,3 +1,7 @@
+import json
+import os
+import urllib.request
+
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
@@ -78,7 +82,36 @@ def create_ticket(ticket: TicketRequest):
     finally:
         conn.close()
 
-    # Step 4: Return the result
+        # Step 4: Trigger n8n workflow
+    webhook_url = os.getenv("N8N_WEBHOOK_URL")
+
+    if webhook_url:
+        payload = {
+            "ticket_id": ticket_id,
+            "customer_name": ticket.customer_name,
+            "message": ticket.message,
+            "category": category,
+            "priority": priority,
+            "handling_type": handling_type,
+            "status": "received"
+        }
+
+        request = urllib.request.Request(
+            webhook_url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        try:
+            with urllib.request.urlopen(request, timeout=10) as response:
+                print(f"n8n webhook triggered: HTTP {response.status}")
+
+        except Exception as exc:
+            print(f"n8n webhook failed: {exc}")
+
+    
+    # Step 5: Return the result
     return {
         "ticket_id": ticket_id,
         "message": "Support ticket saved successfully",
