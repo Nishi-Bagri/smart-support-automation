@@ -2,7 +2,14 @@
 
 An automated customer support ticket management system built using **Python, FastAPI, PostgreSQL, and n8n**.
 
-The application receives customer support requests, classifies them based on their message, assigns priority, stores ticket information in PostgreSQL, and routes tickets through an automated n8n workflow.
+The application receives customer support requests, classifies them based on their message, assigns priority, stores ticket information in PostgreSQL, and automatically triggers an n8n workflow for priority-based ticket handling.
+
+## Live Demo
+
+- **Live Frontend:** https://supportflow-frontend-oehi.onrender.com
+- **Backend API:** https://smart-support-automation.onrender.com
+- **API Documentation:** https://smart-support-automation.onrender.com/docs
+- **GitHub Repository:** https://github.com/Nishi-Bagri/smart-support-automation
 
 ## Features
 
@@ -12,12 +19,15 @@ The application receives customer support requests, classifies them based on the
   - Return
   - Cancellation
   - Delivery
+  - Order
   - General
 - Assign high or normal priority.
 - Automatically determine urgent or normal handling.
 - Store customer tickets in PostgreSQL.
-- Automate ticket processing and routing using n8n.
+- Trigger n8n workflow automatically after ticket creation.
+- Route high-priority and normal-priority tickets through n8n.
 - Return a unique ticket ID after successful database insertion.
+- Retrieve saved tickets through the backend API.
 
 ## Technology Stack
 
@@ -29,7 +39,10 @@ The application receives customer support requests, classifies them based on the
 | PostgreSQL | Database |
 | Psycopg | PostgreSQL connectivity |
 | n8n | Workflow automation |
-| Cloudflare Tunnel | Temporary public access during development |
+| React | Frontend |
+| Vite | Frontend development |
+| Render | Cloud deployment |
+| Supabase PostgreSQL | Hosted database |
 | Git & GitHub | Version control |
 
 ## Architecture
@@ -38,10 +51,7 @@ The application receives customer support requests, classifies them based on the
 Customer
    |
    v
-n8n Webhook
-   |
-   v
-HTTP Request
+React Frontend
    |
    v
 FastAPI Backend
@@ -53,10 +63,10 @@ Ticket Classification
 PostgreSQL Database
    |
    v
-API Response
+n8n Production Webhook
    |
    v
-n8n IF Node
+IF Node: Check Priority
    |
    +------ High Priority
    |          |
@@ -75,12 +85,17 @@ n8n IF Node
 smart-support-automation/
 │
 ├── backend/
-│   ├── venv/
 │   ├── main.py
 │   ├── classifier.py
 │   ├── database.py
+│   ├── requirements.txt
 │   ├── .env
 │   └── .gitignore
+│
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── ...
 │
 ├── workflows/
 │
@@ -118,26 +133,28 @@ Activate it on Windows:
 ### 3. Install dependencies
 
 ```bash
-pip install fastapi uvicorn pydantic psycopg[binary] python-dotenv
+pip install -r requirements.txt
 ```
 
 ### 4. Configure environment variables
 
-Create a `.env` file inside the backend folder:
+Create a `.env` file inside the backend folder and configure your database connection and n8n webhook URL according to your local setup.
 
 ```env
-DB_HOST=localhost
+DB_HOST=your_postgresql_host
 DB_PORT=5432
-DB_NAME=smart_support_db
-DB_USER=postgres
+DB_NAME=your_database_name
+DB_USER=your_database_user
 DB_PASSWORD=your_postgresql_password
+
+N8N_WEBHOOK_URL=your_n8n_production_webhook_url
 ```
 
-Never commit database credentials to GitHub.
+Never commit database credentials or private webhook URLs to GitHub.
 
 ### 5. Create the PostgreSQL database
 
-Create a database named `smart_support_db` and execute:
+Create a PostgreSQL database and execute:
 
 ```sql
 CREATE TABLE tickets (
@@ -154,23 +171,39 @@ CREATE TABLE tickets (
 
 ### 6. Start FastAPI
 
+From the backend directory:
+
 ```bash
 python -m uvicorn main:app --reload
 ```
 
+Backend runs locally at:
+
+http://127.0.0.1:8000
+
 API documentation:
 
-```text
 http://127.0.0.1:8000/docs
+
+### 7. Start the frontend
+
+Open a new terminal and navigate to the frontend directory:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-## API Endpoint
+Open the local URL provided by Vite.
 
-**Create a support ticket**
+## API Endpoints
 
-`POST /tickets`
+### Create a Support Ticket
 
-Request:
+**POST** `/tickets`
+
+Example request:
 
 ```json
 {
@@ -193,9 +226,15 @@ Example response:
 }
 ```
 
+### Get All Tickets
+
+**GET** `/tickets`
+
+Returns the saved support tickets from the database.
+
 ## Workflow Testing
 
-The following scenarios have been tested:
+The following ticket classification scenarios have been tested:
 
 | Customer Message | Category | Priority | Handling |
 |---|---|---|---|
@@ -203,6 +242,7 @@ The following scenarios have been tested:
 | My product arrived damaged | Return | High | Urgent |
 | Tell me the delivery status | Delivery | Normal | Normal |
 | Please cancel my order | Cancellation | Normal | Normal |
+| I need my order confirmation | Order | Normal | Normal |
 
 ## Current Project Status
 
@@ -212,8 +252,9 @@ The following scenarios have been tested:
 - [x] Ticket insertion and unique ID generation
 - [x] n8n webhook integration
 - [x] High-priority and normal-priority routing
-- [ ] Automated test suite
-- [ ] Production cloud deployment
+- [x] Backend and frontend cloud deployment
+- [x] Automatic n8n execution verified from live frontend
+- [x] End-to-end ticket processing verified
 
 ## Future Enhancements
 
@@ -223,6 +264,7 @@ The following scenarios have been tested:
 - Automated customer response suggestions
 - Authentication and authorization
 - Production monitoring and logging
+- Automated test suite
 
 ## Author
 
@@ -232,4 +274,4 @@ GitHub: https://github.com/Nishi-Bagri
 
 ---
 
-*This project is being developed as a practical demonstration of backend development, database integration, and workflow automation.*
+*This project demonstrates backend development, REST API design, database integration, and workflow automation.*
